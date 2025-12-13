@@ -23,7 +23,7 @@ export const analyzeSentiment = async (text) => {
   }
 
   if (!UCLASSIFY_API_KEY) {
-    console.warn('uClassify API key not configured. Skipping sentiment analysis.');
+    console.error('❌ uClassify API key not configured. Skipping sentiment analysis.');
     return {
       success: false,
       error: 'API key not configured',
@@ -31,6 +31,8 @@ export const analyzeSentiment = async (text) => {
       confidence: 0
     };
   }
+
+  console.log('🤖 Calling uClassify Sentiment API...');
 
   try {
     const response = await axios.post(
@@ -60,14 +62,18 @@ export const analyzeSentiment = async (text) => {
       }
     }
 
-    return {
+    const result = {
       success: true,
       sentiment: sentiment, // 'positive', 'negative', or 'neutral'
       confidence: Math.round(maxProb * 100),
       raw: classifications
     };
+
+    console.log('✅ uClassify Sentiment Result:', result);
+    return result;
   } catch (error) {
-    console.error('uClassify Sentiment API Error:', error.response?.data || error.message);
+    console.error('❌ uClassify Sentiment API Error:', error.response?.data || error.message);
+    console.error('Full error:', error);
     return {
       success: false,
       error: error.message,

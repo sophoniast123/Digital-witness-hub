@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>uClassify API Test</title>
+</head>
+<body>
+    <h1>Testing uClassify API</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing...</p>';
+
+            const apiKey = '46uamncjLZ0G';
+            const testText = 'I hate you so much! You are terrible and I will hurt you!';
+
+            try {
+                // Test sentiment
+                const sentimentResponse = await fetch('https://api.uclassify.com/v1/uclassify/sentiment/classify', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Token ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        texts: [testText]
+                    })
+                });
+
+                const sentimentData = await sentimentResponse.json();
+                
+                resultsDiv.innerHTML = `
+                    <h2>API Test Results:</h2>
+                    <p><strong>Text:</strong> "${testText}"</p>
+                    <h3>Sentiment Analysis:</h3>
+                    <pre>${JSON.stringify(sentimentData, null, 2)}</pre>
+                `;
+
+                // Test mood
+                const moodResponse = await fetch('https://api.uclassify.com/v1/uclassify/mood/classify', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Token ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        texts: [testText]
+                    })
+                });
+
+                const moodData = await moodResponse.json();
+                
+                resultsDiv.innerHTML += `
+                    <h3>Mood Analysis:</h3>
+                    <pre>${JSON.stringify(moodData, null, 2)}</pre>
+                `;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('API Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

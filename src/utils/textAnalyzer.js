@@ -75,9 +75,11 @@ export const analyzeText = async (description) => {
   // Get AI-powered sentiment and mood analysis from uClassify
   let aiAnalysis = null;
   try {
+    console.log('🔍 Starting AI analysis for text:', description.substring(0, 100) + '...');
     aiAnalysis = await comprehensiveAnalysis(description);
+    console.log('✅ AI Analysis complete:', aiAnalysis);
   } catch (error) {
-    console.warn('uClassify API unavailable, using keyword analysis only:', error);
+    console.error('❌ uClassify API unavailable, using keyword analysis only:', error);
   }
 
   // Adjust severity based on AI sentiment and mood
