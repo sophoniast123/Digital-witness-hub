@@ -1,11 +1,9 @@
 // uClassify API Integration
 // Provides sentiment analysis and mood detection for better threat assessment
+// Routes through Vercel serverless function to avoid CORS issues
 
-import axios from 'axios';
-
-// API Configuration
-const UCLASSIFY_API_KEY = import.meta.env.VITE_UCLASSIFY_API_KEY || '';
-const UCLASSIFY_BASE_URL = 'https://api.uclassify.com/v1';
+// API Configuration - use serverless function endpoint
+const API_ENDPOINT = '/api/uclassify';
 
 /**
  * Analyze sentiment of text (Positive/Negative/Neutral)
@@ -22,34 +20,29 @@ export const analyzeSentiment = async (text) => {
     };
   }
 
-  if (!UCLASSIFY_API_KEY) {
-    console.error('❌ uClassify API key not configured. Skipping sentiment analysis.');
-    return {
-      success: false,
-      error: 'API key not configured',
-      sentiment: 'unknown',
-      confidence: 0
-    };
-  }
 
   console.log('🤖 Calling uClassify Sentiment API...');
 
   try {
-    const response = await axios.post(
-      `${UCLASSIFY_BASE_URL}/uclassify/sentiment/classify`,
-      {
-        texts: [text]
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
-      {
-        headers: {
-          'Authorization': `Token ${UCLASSIFY_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+      body: JSON.stringify({
+        text: text,
+        classifier: 'sentiment'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
 
     // Parse response
-    const classifications = response.data[0].classification;
+    const classifications = data[0].classification;
     
     // Find the sentiment with highest probability
     let maxProb = 0;
@@ -98,32 +91,27 @@ export const analyzeMood = async (text) => {
     };
   }
 
-  if (!UCLASSIFY_API_KEY) {
-    console.warn('uClassify API key not configured. Skipping mood analysis.');
-    return {
-      success: false,
-      error: 'API key not configured',
-      mood: 'unknown',
-      confidence: 0
-    };
-  }
 
   try {
-    const response = await axios.post(
-      `${UCLASSIFY_BASE_URL}/uclassify/mood/classify`,
-      {
-        texts: [text]
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
-      {
-        headers: {
-          'Authorization': `Token ${UCLASSIFY_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+      body: JSON.stringify({
+        text: text,
+        classifier: 'mood'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
 
     // Parse response
-    const classifications = response.data[0].classification;
+    const classifications = data[0].classification;
     
     // Find the mood with highest probability
     let maxProb = 0;
@@ -178,32 +166,27 @@ export const detectLanguage = async (text) => {
     };
   }
 
-  if (!UCLASSIFY_API_KEY) {
-    console.warn('uClassify API key not configured. Skipping language detection.');
-    return {
-      success: false,
-      error: 'API key not configured',
-      language: 'unknown',
-      confidence: 0
-    };
-  }
 
   try {
-    const response = await axios.post(
-      `${UCLASSIFY_BASE_URL}/uclassify/language/classify`,
-      {
-        texts: [text]
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
-      {
-        headers: {
-          'Authorization': `Token ${UCLASSIFY_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+      body: JSON.stringify({
+        text: text,
+        classifier: 'language'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
 
     // Parse response
-    const classifications = response.data[0].classification;
+    const classifications = data[0].classification;
     
     // Find the language with highest probability
     let maxProb = 0;
