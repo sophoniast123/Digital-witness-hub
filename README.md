@@ -97,10 +97,12 @@ digital-safety-hub/
 │   │   ├── hashGenerator.js      # SHA-256 hashing
 │   │   ├── ocrTextCleaner.js     # OCR text processing
 │   │   ├── imagePreprocessor.js  # Social media OCR enhancement
-│   │   ├── uclassifyAPI.js       # AI sentiment/mood API
+│   │   ├── uclassifyAPI.js       # AI sentiment/mood API (frontend)
 │   │   └── pdfGenerator.js       # PDF report generation
 │   ├── App.jsx                   # Main app component
 │   └── index.jsx                 # Entry point
+├── api/
+│   └── uclassify.js              # Serverless proxy (avoids CORS)
 ├── .env                          # API keys (not in git)
 ├── .env.example                  # Template for .env
 ├── package.json                  # Dependencies

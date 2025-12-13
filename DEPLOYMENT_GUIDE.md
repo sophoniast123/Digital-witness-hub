@@ -47,14 +47,18 @@ git push -u origin main
    - Build Command: `npm run build`
    - Output Directory: `dist`
    - Root Directory: `./`
+   - **Important**: The `/api` folder will be automatically detected for serverless functions
 
 6. **Add Environment Variable:**
    - Key: `VITE_UCLASSIFY_API_KEY`
    - Value: `your_api_key_here`
+   - **Important**: This is required for the `/api/uclassify` serverless function to work
 
 7. **Click:** "Deploy"
 
 8. **Wait 1-2 minutes** ⏳
+   - Frontend builds (Vite)
+   - Serverless functions deploy (`/api` folder)
 
 9. **Done!** 🎉 Your URL: `https://digital-safety-hub.vercel.app`
 
@@ -72,9 +76,12 @@ Test these URLs (replace with your actual domain):
 - ✅ Upload evidence
 - ✅ Generate PDF
 - ✅ Hash certificates download
-- ✅ AI analysis works
+- ✅ AI analysis works (sentiment/mood via `/api/uclassify`)
 - ✅ OCR extracts text
 - ✅ Verification works
+
+**Test API endpoints:**
+- ✅ `/api/uclassify` - Should return 405 for GET, 400 for invalid POST
 
 ---
 

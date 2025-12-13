@@ -4,6 +4,8 @@
 
 uClassify has been integrated to provide advanced sentiment analysis, mood detection, and language identification for better threat assessment and evidence analysis.
 
+**Important**: The integration uses a Vercel serverless function to avoid CORS issues. All API calls are proxied through `/api/uclassify` endpoint.
+
 ---
 
 ## 🔑 Setup Instructions
@@ -30,7 +32,16 @@ VITE_UCLASSIFY_API_KEY=your_actual_api_key_here
 VITE_UCLASSIFY_API_KEY=abc123def456ghi789jkl012mno345pqr678
 ```
 
-### **Step 3: Restart Development Server**
+### **Step 3: Configure Vercel Environment Variables**
+
+For production deployment on Vercel:
+
+1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+2. Add: `VITE_UCLASSIFY_API_KEY` = `your_api_key`
+3. Select all environments (Production, Preview, Development)
+4. Save and redeploy
+
+### **Step 4: Restart Development Server**
 
 ```bash
 # Stop current server (Ctrl+C)
@@ -41,10 +52,19 @@ npm run dev
 
 ## 📊 What's Been Added
 
-### **New File Created:**
+### **New Files Created:**
 ```
-src/utils/uclassifyAPI.js
+src/utils/uclassifyAPI.js   # Frontend API wrapper
+api/uclassify.js            # Serverless proxy function (avoids CORS)
 ```
+
+### **Architecture:**
+```
+Browser → uclassifyAPI.js → /api/uclassify → uClassify API
+         (Frontend)          (Serverless)      (External)
+```
+
+This architecture eliminates CORS issues by routing API calls through your backend.
 
 ### **Functions Available:**
 

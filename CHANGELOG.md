@@ -1,5 +1,28 @@
 # 📋 Changelog - Digital Safety Hub
 
+## Version 2.0.1 (December 2024) - CORS Fix & Cleanup
+
+### 🔧 Bug Fixes
+
+#### CORS Issue Resolution
+- **Fixed**: uClassify API CORS policy blocking browser requests from Vercel deployment
+- **Solution**: Created Vercel serverless function `/api/uclassify.js` to proxy API calls
+- **Impact**: All uClassify API calls now route through backend, eliminating CORS errors
+- **Changed**: `src/utils/uclassifyAPI.js` now uses native `fetch` instead of `axios`
+- **Removed**: `axios` dependency from package.json (no longer needed)
+- **Removed**: `test_uclassify.html` (outdated test file with direct API calls)
+- **Updated**: `.gitignore` to include `.env` file
+
+### 📁 Files Changed
+- **Added**: `api/uclassify.js` - Serverless function for CORS-free API access
+- **Modified**: `src/utils/uclassifyAPI.js` - Refactored to use serverless endpoint
+- **Modified**: `package.json` - Removed axios dependency
+- **Modified**: `.gitignore` - Added .env to prevent accidental commits
+- **Modified**: `README.md` - Updated architecture diagram with API folder
+- **Deleted**: `test_uclassify.html` - No longer needed
+
+---
+
 ## Version 2.0.0 (December 2024) - Major Update
 
 ### 🎉 New Features
@@ -56,7 +79,7 @@
 ### 🔧 Technical Improvements
 
 #### New Files Created
-- `src/utils/uclassifyAPI.js` - uClassify API integration
+- `src/utils/uclassifyAPI.js` - uClassify API integration (frontend)
 - `src/utils/imagePreprocessor.js` - Social media OCR enhancement
 - `.env` - Environment variables (API keys)
 - `.env.example` - Template for environment setup
@@ -66,7 +89,6 @@
 - `src/components/ReportAbuse.jsx` - Enhanced OCR + AI display
 - `src/components/ReportAbuse.css` - AI analysis styling
 - `src/utils/ocrTextCleaner.js` - Used by enhanced OCR pipeline
-- `package.json` - Added axios dependency
 
 ### 🎨 UI Enhancements
 
