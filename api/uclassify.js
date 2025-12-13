@@ -9,13 +9,26 @@ export default async function handler(req, res) {
 
   const { text, classifier } = req.body;
 
+  // Debug logging
+  console.log('Request body:', req.body);
+  console.log('Text:', text);
+  console.log('Classifier:', classifier);
+
   // Validate input
   if (!text || typeof text !== 'string') {
-    return res.status(400).json({ error: 'Text is required and must be a string' });
+    return res.status(400).json({ 
+      error: 'Text is required and must be a string',
+      received: { text: typeof text, classifier: typeof classifier },
+      body: req.body
+    });
   }
 
   if (!classifier || typeof classifier !== 'string') {
-    return res.status(400).json({ error: 'Classifier is required' });
+    return res.status(400).json({ 
+      error: 'Classifier is required',
+      received: { text: typeof text, classifier: typeof classifier },
+      body: req.body
+    });
   }
 
   // Get API key from environment variable
