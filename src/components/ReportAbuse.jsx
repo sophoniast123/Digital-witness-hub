@@ -270,33 +270,6 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
     return 'low';
   };
 
-  const getSentimentEmoji = (sentiment) => {
-    const emojiMap = {
-      'positive': '😊',
-      'negative': '😠',
-      'neutral': '😐'
-    };
-    return emojiMap[sentiment] || '😐';
-  };
-
-  const getMoodEmoji = (mood) => {
-    const moodLower = mood.toLowerCase();
-    if (moodLower.includes('angry') || moodLower.includes('aggressive')) return '😡';
-    if (moodLower.includes('sad') || moodLower.includes('depressed')) return '😢';
-    if (moodLower.includes('happy') || moodLower.includes('joy')) return '😊';
-    if (moodLower.includes('fear') || moodLower.includes('scared')) return '😨';
-    if (moodLower.includes('disgust')) return '🤢';
-    if (moodLower.includes('surprise')) return '😲';
-    if (moodLower.includes('threatening') || moodLower.includes('hostile')) return '⚠️';
-    return '💭';
-  };
-
-  const getMoodLevel = (probability) => {
-    if (probability >= 75) return 'high';
-    if (probability >= 50) return 'medium';
-    return 'low';
-  };
-
   const resetForm = () => {
     setFormData({
       name: '',
@@ -460,35 +433,6 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
                   {analysis.severity.toUpperCase()}
                 </span>
               </div>
-              
-              {/* AI Sentiment Analysis */}
-              {analysis.aiAnalysis && analysis.aiAnalysis.sentiment && analysis.aiAnalysis.sentiment.success && (
-                <div className="analysis-item ai-analysis">
-                  <strong>🎭 Sentiment Analysis:</strong>
-                  <div className="sentiment-display">
-                    <span className={`sentiment-badge sentiment-${analysis.aiAnalysis.sentiment.sentiment}`}>
-                      {getSentimentEmoji(analysis.aiAnalysis.sentiment.sentiment)} {analysis.aiAnalysis.sentiment.sentiment.toUpperCase()}
-                    </span>
-                    <span className="confidence-score">
-                      {analysis.aiAnalysis.sentiment.confidence}% confidence
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              {/* AI Mood Analysis */}
-              {analysis.aiAnalysis && analysis.aiAnalysis.mood && analysis.aiAnalysis.mood.success && (
-                <div className="analysis-item ai-analysis">
-                  <strong>😊 Mood Detection:</strong>
-                  <div className="mood-tags">
-                    {analysis.aiAnalysis.mood.topMoods && analysis.aiAnalysis.mood.topMoods.map((mood, idx) => (
-                      <span key={idx} className={`mood-tag mood-level-${getMoodLevel(mood.probability)}`}>
-                        {getMoodEmoji(mood.mood)} {mood.mood} ({mood.probability}%)
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
               
               <div className="analysis-item">
                 <strong>Keywords Detected:</strong>
