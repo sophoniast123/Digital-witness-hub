@@ -3,6 +3,7 @@ import { generatePDF } from '../utils/pdfGenerator';
 import { analyzeText } from '../utils/textAnalyzer';
 import { generateFileHash } from '../utils/hashGenerator';
 import { processOCRText } from '../utils/ocrTextCleaner';
+import { preprocessSocialMediaScreenshot, detectSocialMediaScreenshot } from '../utils/imagePreprocessor';
 import Tesseract from 'tesseract.js';
 import './ReportAbuse.css';
 
@@ -43,12 +44,30 @@ function ReportAbuse() {
             console.error('Hash Generation Error:', error);
           }
           
-          // Perform OCR on the image
+          // Perform OCR on the image with enhanced preprocessing for social media
           let extractedText = '';
           let processedText = null;
           try {
+            // Create temporary image to check dimensions
+            const tempImg = new Image();
+            await new Promise((resolve) => {
+              tempImg.onload = resolve;
+              tempImg.src = imageData;
+            });
+
+            // Detect if this is a social media screenshot
+            const isSocialMedia = detectSocialMediaScreenshot(tempImg.width, tempImg.height);
+            
+            // Preprocess image for better OCR (especially for dark mode and social media)
+            let processedImageData = imageData;
+            if (isSocialMedia) {
+              console.log('Social media screenshot detected, applying enhanced preprocessing...');
+              processedImageData = await preprocessSocialMediaScreenshot(imageData);
+            }
+
+            // Enhanced OCR configuration
             const result = await Tesseract.recognize(
-              imageData,
+              processedImageData,
               'eng',
               {
                 logger: (m) => {
@@ -58,7 +77,11 @@ function ReportAbuse() {
                       [file.name]: Math.round(m.progress * 100)
                     }));
                   }
-                }
+                },
+                // Advanced Tesseract configuration for better accuracy
+                tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?;:\'"@#$%&*()-_+=/<>[]{}|~`',
+                preserve_interword_spaces: '1',
               }
             );
             
@@ -120,8 +143,8 @@ function ReportAbuse() {
     
     const combinedText = formData.description + (allExtractedText ? '\n\nExtracted from images:\n' + allExtractedText : '');
 
-    // Analyze the combined description and OCR text
-    const analysisResult = analyzeText(combinedText);
+    // Analyze the combined description and OCR text (now async with AI)
+    const analysisResult = await analyzeText(combinedText);
     setAnalysis(analysisResult);
 
     // Generate PDF with combined text and hash information
@@ -244,6 +267,33 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
   const getConfidenceClass = (confidence) => {
     if (confidence >= 80) return 'high';
     if (confidence >= 60) return 'medium';
+    return 'low';
+  };
+
+  const getSentimentEmoji = (sentiment) => {
+    const emojiMap = {
+      'positive': '😊',
+      'negative': '😠',
+      'neutral': '😐'
+    };
+    return emojiMap[sentiment] || '😐';
+  };
+
+  const getMoodEmoji = (mood) => {
+    const moodLower = mood.toLowerCase();
+    if (moodLower.includes('angry') || moodLower.includes('aggressive')) return '😡';
+    if (moodLower.includes('sad') || moodLower.includes('depressed')) return '😢';
+    if (moodLower.includes('happy') || moodLower.includes('joy')) return '😊';
+    if (moodLower.includes('fear') || moodLower.includes('scared')) return '😨';
+    if (moodLower.includes('disgust')) return '🤢';
+    if (moodLower.includes('surprise')) return '😲';
+    if (moodLower.includes('threatening') || moodLower.includes('hostile')) return '⚠️';
+    return '💭';
+  };
+
+  const getMoodLevel = (probability) => {
+    if (probability >= 75) return 'high';
+    if (probability >= 50) return 'medium';
     return 'low';
   };
 
@@ -396,7 +446,7 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
 
         {analysis && (
           <div className="analysis-result">
-            <h3>Analysis Complete</h3>
+            <h3>🤖 AI-Enhanced Analysis Complete</h3>
             <div className="analysis-card">
               <div className="analysis-item">
                 <strong>Classification:</strong>
@@ -410,6 +460,36 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
                   {analysis.severity.toUpperCase()}
                 </span>
               </div>
+              
+              {/* AI Sentiment Analysis */}
+              {analysis.aiAnalysis && analysis.aiAnalysis.sentiment && analysis.aiAnalysis.sentiment.success && (
+                <div className="analysis-item ai-analysis">
+                  <strong>🎭 Sentiment Analysis:</strong>
+                  <div className="sentiment-display">
+                    <span className={`sentiment-badge sentiment-${analysis.aiAnalysis.sentiment.sentiment}`}>
+                      {getSentimentEmoji(analysis.aiAnalysis.sentiment.sentiment)} {analysis.aiAnalysis.sentiment.sentiment.toUpperCase()}
+                    </span>
+                    <span className="confidence-score">
+                      {analysis.aiAnalysis.sentiment.confidence}% confidence
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* AI Mood Analysis */}
+              {analysis.aiAnalysis && analysis.aiAnalysis.mood && analysis.aiAnalysis.mood.success && (
+                <div className="analysis-item ai-analysis">
+                  <strong>😊 Mood Detection:</strong>
+                  <div className="mood-tags">
+                    {analysis.aiAnalysis.mood.topMoods && analysis.aiAnalysis.mood.topMoods.map((mood, idx) => (
+                      <span key={idx} className={`mood-tag mood-level-${getMoodLevel(mood.probability)}`}>
+                        {getMoodEmoji(mood.mood)} {mood.mood} ({mood.probability}%)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="analysis-item">
                 <strong>Keywords Detected:</strong>
                 <div className="keywords">

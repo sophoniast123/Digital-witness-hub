@@ -1,6 +1,7 @@
 // AI-powered text analysis for digital abuse classification
+import { comprehensiveAnalysis } from './uclassifyAPI.js';
 
-export const analyzeText = (description) => {
+export const analyzeText = async (description) => {
   const text = description.toLowerCase();
   
   // Define keywords for different types of abuse
@@ -71,17 +72,81 @@ export const analyzeText = (description) => {
       .trim();
   }
 
+  // Get AI-powered sentiment and mood analysis from uClassify
+  let aiAnalysis = null;
+  try {
+    aiAnalysis = await comprehensiveAnalysis(description);
+  } catch (error) {
+    console.warn('uClassify API unavailable, using keyword analysis only:', error);
+  }
+
+  // Adjust severity based on AI sentiment and mood
+  const adjustedSeverity = adjustSeverityWithAI(maxSeverity, aiAnalysis, detectedCategories);
+
   // Generate recommendations based on severity and category
-  const recommendations = generateRecommendations(maxSeverity, detectedCategories);
+  const recommendations = generateRecommendations(adjustedSeverity, detectedCategories);
 
   return {
     category: primaryCategory,
-    severity: maxSeverity,
+    severity: adjustedSeverity,
     keywords: [...new Set(allKeywords)].slice(0, 8), // Unique keywords, max 8
     detectedTypes: detectedCategories,
     recommendations,
+    aiAnalysis: aiAnalysis, // Include AI analysis results
     timestamp: new Date().toISOString()
   };
+};
+
+/**
+ * Adjust severity level based on AI sentiment and mood analysis
+ */
+const adjustSeverityWithAI = (keywordSeverity, aiAnalysis, categories) => {
+  if (!aiAnalysis || !aiAnalysis.success) {
+    return keywordSeverity;
+  }
+
+  let adjustedSeverity = keywordSeverity;
+  
+  // Get sentiment and mood data
+  const sentiment = aiAnalysis.sentiment;
+  const mood = aiAnalysis.mood;
+
+  // Highly negative sentiment increases severity
+  if (sentiment.success && sentiment.sentiment === 'negative') {
+    if (sentiment.confidence >= 90) {
+      // Very strong negative sentiment
+      if (adjustedSeverity === 'medium') adjustedSeverity = 'high';
+      if (adjustedSeverity === 'low') adjustedSeverity = 'medium';
+    } else if (sentiment.confidence >= 75) {
+      // Strong negative sentiment
+      if (adjustedSeverity === 'low') adjustedSeverity = 'medium';
+    }
+  }
+
+  // Threatening or aggressive mood increases severity
+  if (mood.success && mood.topMoods) {
+    const threateningMoods = ['angry', 'aggressive', 'hostile', 'threatening', 'violent'];
+    const hasThreateningMood = mood.topMoods.some(m => 
+      threateningMoods.some(tm => m.mood.toLowerCase().includes(tm)) && m.probability >= 70
+    );
+
+    if (hasThreateningMood) {
+      if (adjustedSeverity === 'medium') adjustedSeverity = 'high';
+      if (adjustedSeverity === 'high') adjustedSeverity = 'critical';
+      if (adjustedSeverity === 'low') adjustedSeverity = 'medium';
+    }
+  }
+
+  // Positive sentiment with threat keywords might be sarcasm or false positive
+  if (sentiment.success && sentiment.sentiment === 'positive' && sentiment.confidence >= 70) {
+    // If we detected threats but sentiment is positive, might be false positive
+    if (categories.includes('threats') && keywordSeverity === 'critical') {
+      // Downgrade slightly, might be figurative language
+      adjustedSeverity = 'high';
+    }
+  }
+
+  return adjustedSeverity;
 };
 
 const generateRecommendations = (severity, categories) => {
