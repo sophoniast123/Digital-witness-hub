@@ -130,15 +130,6 @@ When you generate the report:
 - **Mood Detection** - Angry, threatening, aggressive, etc.
 - **Combined Scoring** - Intelligent severity assessment
 
-Example:
-```
-Text: "I'm going to find you and hurt you"
-
-Keyword Detection: "hurt", "find you"
-Sentiment: 😠 Negative (95%)
-Mood: 😡 Angry (87%), ⚠️ Threatening (92%)
-Severity: CRITICAL
-```
 
 ### 3. Download Evidence Package
 You receive:
@@ -154,37 +145,6 @@ You receive:
 
 ---
 
-## 🔬 Technical Details
-
-### OCR Enhancement for Social Media
-
-**Problem:** Standard OCR fails on:
-- Dark mode screenshots (white text on dark background)
-- Colored backgrounds (Instagram stories, Telegram themes)
-- Low contrast text
-- Mobile screenshot formats
-
-**Solution:**
-```javascript
-// Automatic detection of social media screenshots
-const isSocialMedia = detectSocialMediaScreenshot(width, height);
-
-// Enhanced preprocessing
-if (isSocialMedia) {
-  // 1. Detect dark mode vs light mode
-  // 2. Invert colors for dark mode
-  // 3. Increase contrast (2.5x for dark, 2.0x for light)
-  // 4. Apply adaptive thresholding
-  // 5. Convert to binary (black text on white)
-  preprocessedImage = await preprocessSocialMediaScreenshot(image);
-}
-```
-
-**Results:**
-- ✅ 80%+ improvement in dark mode text extraction
-- ✅ Works with Telegram, Instagram, WhatsApp, Facebook, Twitter
-- ✅ Handles colored backgrounds
-- ✅ Preserves text formatting
 
 ### Text Cleaning Pipeline
 
@@ -298,12 +258,6 @@ const hash = Array.from(new Uint8Array(hashBuffer))
 Classification: Physical Threats
 Severity Level: CRITICAL
 
-🎭 Sentiment Analysis:
-😠 NEGATIVE (98% confidence)
-
-😊 Mood Detection:
-😡 angry (92%)  ⚠️ threatening (88%)  😡 aggressive (75%)
-
 🔐 Hash Generated:
 a1b2c3d4e5f6a7b8... ✅ Certificate will be downloaded
 
@@ -321,44 +275,12 @@ Recommended Actions:
 
 ---
 
-## 🚀 Deployment
-
-### Deploy to Vercel (Free)
-
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Login
-vercel login
-
-# Deploy
-vercel --prod
-
-# Or use Vercel Dashboard:
-# 1. Push to GitHub
-# 2. Import project in Vercel
-# 3. Add VITE_UCLASSIFY_API_KEY in environment variables
-# 4. Deploy
-```
-
-**See detailed guide:** [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
-
-### Environment Variables
-
-Required:
-```bash
-VITE_UCLASSIFY_API_KEY=your_uclassify_api_key
-```
-
----
-
 ## 📊 API Usage
 
 ### uClassify Free Tier
 - **1,000 API calls per day**
 - Each report uses 3 calls (sentiment + mood + language)
-- **~333 reports per day capacity**
+- **~500 reports per day capacity**
 - More than sufficient for most use cases
 
 ### Rate Limiting
@@ -464,31 +386,12 @@ MIT License - See [LICENSE](LICENSE) file
 
 ---
 
-## 🙏 Acknowledgments
-
-- **Tesseract.js** - OCR engine
-- **jsPDF** - PDF generation
-- **uClassify** - AI sentiment & mood analysis
-- **React** - UI framework
-- **Vite** - Build tool
-
----
-
-## 📞 Support
-
-### Issues
-- GitHub Issues: [Report bugs or request features]
-- Email: support@digitalsafetyhub.com
-
-### Resources
-- uClassify Docs: https://www.uclassify.com/docs/
-- Ethiopian Cyber Crime Unit: https://www.police.gov.et/
-
 ---
 
 ## 🎯 Roadmap
 
 ### Planned Features
+- [ ] OCR Enhancement for Social Media
 - [ ] Multi-language support (Amharic, Tigrinya)
 - [ ] Voice message transcription
 - [ ] Video evidence processing
@@ -513,33 +416,8 @@ This tool is for documentation purposes. It does not constitute legal advice. Al
 
 ---
 
-## 📈 Stats
-
-- **Lines of Code:** ~3,000+
-- **Components:** 3 main components
-- **Utilities:** 6 utility modules
-- **Documentation:** 5 comprehensive guides
-- **Test Coverage:** OCR, Hash, AI Analysis
-- **Supported Languages:** English (OCR), Multilingual (UI ready)
-- **Browser Support:** Chrome, Firefox, Edge, Safari
-
----
-
 **Made with 💚 for Digital Safety & Justice**
 
 *Empowering victims to document abuse and seek justice through technology*
 
 ---
-
-## 🔗 Links
-
-- **Live Demo:** https://digital-safety-hub.vercel.app
-- **GitHub:** https://github.com/yourusername/digital-safety-hub
-- **Issues:** https://github.com/yourusername/digital-safety-hub/issues
-- **Discussions:** https://github.com/yourusername/digital-safety-hub/discussions
-
----
-
-**Version:** 2.0.0
-**Last Updated:** December 2024
-**Status:** ✅ Production Ready
