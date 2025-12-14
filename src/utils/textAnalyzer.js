@@ -15,11 +15,11 @@ export const analyzeText = async (description) => {
       severity: 'high'
     },
     imageBasedAbuse: {
-      keywords: ['nude photo', 'nude picture', 'nude image', 'nude video', 'intimate photo', 'intimate picture', 'intimate image', 'intimate video', 'revenge porn', 'naked photo', 'naked picture', 'sexual photo', 'sexual picture', 'sexual image', 'sexual video', 'private photo', 'private picture', 'without consent', 'without permission', 'leaked photo', 'leaked image', 'leaked video', 'exposed photo', 'exposed image', 'shared my photo', 'shared my picture', 'posted my photo', 'posted my picture'],
+      keywords: ['nude photo', 'nude picture', 'nude image', 'nude video', 'intimate photo', 'intimate picture', 'intimate image', 'intimate video', 'revenge porn', 'naked photo', 'naked picture', 'sexual photo', 'sexual picture', 'sexual image', 'sexual video', 'private photo', 'private picture', 'without consent', 'without permission', 'leaked photo', 'leaked image', 'leaked video', 'exposed photo', 'exposed image', 'shared my photo', 'shared my picture', 'posted my photo', 'posted my picture', 'nude'],
       severity: 'critical'
     },
     impersonation: {
-      keywords: ['fake account', 'pretend', 'impersonat', 'fake profile', 'identity', 'posing as'],
+      keywords: ['fake account', 'pretend', 'impersonate', 'fake profile', 'identity', 'posing as'],
       severity: 'high'
     },
     doxxing: {
@@ -27,11 +27,11 @@ export const analyzeText = async (description) => {
       severity: 'critical'
     },
     threats: {
-      keywords: ['kill', 'hurt', 'harm', 'violence', 'attack', 'threaten', 'going to', 'will hurt'],
+      keywords: ['kill', 'hurt', 'harm', 'violence', 'attack', 'threaten', 'going to', 'will hurt', 'will find you', 'watch your back'],
       severity: 'critical'
     },
     sexualHarassment: {
-      keywords: ['sexual', 'inappropriate', 'explicit', 'unwanted advances', 'creep', 'pervert'],
+      keywords: ['sexual', 'inappropriate', 'explicit', 'unwanted advances', 'creep', 'pervert', 'rape'],
       severity: 'high'
     },
     cyberbullying: {
