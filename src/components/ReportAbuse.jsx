@@ -1,92 +1,11 @@
 import React, { useState } from 'react';
 import { generatePDF } from '../utils/pdfGenerator';
-// import { analyzeText } from '../utils/textAnalyzer';
-
+import { analyzeText } from '../utils/textAnalyzer';
 import { generateFileHash } from '../utils/hashGenerator';
 import { processOCRText } from '../utils/ocrTextCleaner';
 import { preprocessSocialMediaScreenshot, detectSocialMediaScreenshot } from '../utils/imagePreprocessor';
 import Tesseract from 'tesseract.js';
 import './ReportAbuse.css';
-
-
-const SYSTEM_PROMPT = `
-You are an impartial text-classification system.
-
-Your sole task is to analyze the provided text and classify whether it contains:
-- abuse,
-- harassment,
-- threats,
-- hate speech,
-- sexual misconduct,
-- coercion or intimidation,
-- or other harmful or inappropriate behavior.
-
-You must remain neutral, factual, and objective.
-Do not assume intent beyond the text.
-
-Respond in JSON with:
-- classification
-- explanation
-- confidence (low | medium | high)
-`;
-
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: "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",
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "HTTP-Referer": window.location.origin,
-    "X-Title": "Digital Safety Hub",
-  },
-   dangerouslyAllowBrowser: true ,
-});
-
-
-export async function analyzeText(text) {
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "openai/gpt-oss-20b:free",
-      temperature: 0,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: text }
-      ],
-    });
-
-    const content = completion?.choices?.[0]?.message?.content;
-
-    if (!content) {
-      // Don't throw - return a structured fallback so callers can handle gracefully
-      console.warn('Empty AI response from chat completion');
-      return {
-        classification: 'unknown',
-        explanation: 'Empty AI response',
-        confidence: 'low'
-      };
-    }
-
-    try {
-      // If model responds with JSON, parse and return it
-      return JSON.parse(content.trim());
-    } catch {
-      // Otherwise return a best-effort shape
-      return {
-        classification: 'unknown',
-        explanation: content,
-        confidence: 'low'
-      };
-    }
-
-  } catch (error) {
-    console.error("AI Analysis Error:", error);
-    return {
-      classification: "unknown",
-      explanation: "AI analysis failed.",
-      confidence: "low",
-    };
-  }
-}
 
 
 
@@ -225,7 +144,7 @@ function ReportAbuse() {
       .filter(text => text && text.length > 0)
       .join('\n\n');
     
-    const combinedText = formData.description + (allExtractedText ? '\n\nExtracted from images:\n' + allExtractedText : '');
+    const combinedText = formData.description + (allExtractedText ? '\n\n--- OCR Text Content ---\n' + allExtractedText : '');
 
     // Log and expose OCR extracted text for debugging
     const extractedPreview = formData.screenshots.map(s => ({

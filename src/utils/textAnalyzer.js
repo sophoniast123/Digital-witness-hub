@@ -15,7 +15,7 @@ export const analyzeText = async (description) => {
       severity: 'high'
     },
     imageBasedAbuse: {
-      keywords: ['photo', 'picture', 'image', 'video', 'nude', 'intimate', 'revenge porn', 'share', 'leak', 'expose'],
+      keywords: ['nude photo', 'nude picture', 'nude image', 'nude video', 'intimate photo', 'intimate picture', 'intimate image', 'intimate video', 'revenge porn', 'naked photo', 'naked picture', 'sexual photo', 'sexual picture', 'sexual image', 'sexual video', 'private photo', 'private picture', 'without consent', 'without permission', 'leaked photo', 'leaked image', 'leaked video', 'exposed photo', 'exposed image', 'shared my photo', 'shared my picture', 'posted my photo', 'posted my picture'],
       severity: 'critical'
     },
     impersonation: {
