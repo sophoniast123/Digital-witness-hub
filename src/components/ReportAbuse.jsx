@@ -33,7 +33,7 @@ Respond in JSON with:
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENROUTER_API_KEY,
+  apiKey: "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",
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": window.location.origin,
@@ -55,15 +55,26 @@ export async function analyzeText(text) {
     });
 
     const content = completion?.choices?.[0]?.message?.content;
-    if (!content) throw new Error("Empty AI response");
+
+    if (!content) {
+      // Don't throw - return a structured fallback so callers can handle gracefully
+      console.warn('Empty AI response from chat completion');
+      return {
+        classification: 'unknown',
+        explanation: 'Empty AI response',
+        confidence: 'low'
+      };
+    }
 
     try {
+      // If model responds with JSON, parse and return it
       return JSON.parse(content.trim());
     } catch {
+      // Otherwise return a best-effort shape
       return {
-        classification: "unknown",
+        classification: 'unknown',
         explanation: content,
-        confidence: "low",
+        confidence: 'low'
       };
     }
 
@@ -89,6 +100,7 @@ function ReportAbuse() {
   const [loading, setLoading] = useState(false);
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const [ocrProgress, setOcrProgress] = useState({});
+  const [debugInfo, setDebugInfo] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -214,6 +226,16 @@ function ReportAbuse() {
       .join('\n\n');
     
     const combinedText = formData.description + (allExtractedText ? '\n\nExtracted from images:\n' + allExtractedText : '');
+
+    // Log and expose OCR extracted text for debugging
+    const extractedPreview = formData.screenshots.map(s => ({
+      name: s.name,
+      length: s.extractedText ? s.extractedText.length : 0,
+      preview: s.extractedText ? s.extractedText.slice(0, 400) : ''
+    }));
+    console.info('Combined text (first 500 chars):', combinedText.slice(0, 500));
+    console.info('Extracted text preview per image:', extractedPreview);
+    setDebugInfo({ combinedTextPreview: combinedText.slice(0, 1000), extractedPreview });
 
     // Analyze the combined description and OCR text (now async with AI)
     const rawAnalysis = await analyzeText(combinedText);
@@ -501,6 +523,20 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
           </div>
         </form>
 
+        {debugInfo && (
+          <div className="debug-panel">
+            <h4>🧾 OCR & Combined Text Debug</h4>
+            <p><strong>Combined Text (preview):</strong></p>
+            <pre className="debug-combined">{debugInfo.combinedTextPreview}</pre>
+            <p><strong>Per-file Extracted Text Preview:</strong></p>
+            <ul>
+              {debugInfo.extractedPreview.map((e, i) => (
+                <li key={i}><strong>{e.name}</strong> — {e.length} chars — "{e.preview}{e.length > 400 ? '...' : ''}"</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {analysis && (
           <div className="analysis-result">
             <h3>🤖 AI-Enhanced Analysis Complete</h3>
@@ -523,6 +559,12 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
                   ))}
                 </div>
               </div>
+              {((analysis?.aiAnalysis && analysis.aiAnalysis.explanation) || analysis?.explanation) && (
+                <div className="analysis-item">
+                  <strong>AI Notes:</strong>
+                  <p className="ai-explanation">{analysis.aiAnalysis?.explanation ?? analysis?.explanation}</p>
+                </div>
+              )}
               <div className="analysis-item">
                 <strong>Recommended Actions:</strong>
                 <ul className="recommendations">
