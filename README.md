@@ -310,21 +310,6 @@ If API limit exceeded:
    - ✅ Dark mode handled properly
    - ✅ Colored backgrounds processed
 
-### Test AI Analysis
-
-```javascript
-// Test threatening message
-"I'm going to find you and kill you"
-Expected: Negative sentiment, Threatening mood, CRITICAL
-
-// Test emotional abuse
-"You're worthless, nobody loves you"
-Expected: Negative sentiment, Hurtful mood, HIGH
-
-// Test false positive
-"I'm going to kill it at work today!"
-Expected: Positive sentiment, Excited mood, LOW
-```
 
 ### Test Hash Verification
 
