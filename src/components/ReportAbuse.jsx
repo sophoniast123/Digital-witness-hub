@@ -1,11 +1,57 @@
 import React, { useState } from 'react';
 import { generatePDF } from '../utils/pdfGenerator';
-import { analyzeText } from '../utils/textAnalyzer';
+// import { analyzeText } from '../utils/textAnalyzer';
+
 import { generateFileHash } from '../utils/hashGenerator';
 import { processOCRText } from '../utils/ocrTextCleaner';
 import { preprocessSocialMediaScreenshot, detectSocialMediaScreenshot } from '../utils/imagePreprocessor';
 import Tesseract from 'tesseract.js';
 import './ReportAbuse.css';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+
+const SYSTEM_PROMPT = `
+You are an impartial text-classification system.
+
+Your sole task is to analyze the provided text and classify whether it contains:
+- abuse,
+- harassment,
+- threats,
+- hate speech,
+- sexual misconduct,
+- coercion or intimidation,
+- or other harmful or inappropriate behavior.
+
+You must remain neutral, factual, and objective.
+Do not assume intent beyond the text.
+
+Respond in JSON with:
+- classification
+- explanation
+- confidence (low | medium | high)
+`;
+
+const genAI = new GoogleGenerativeAI("AIzaSyAa5KHaBdVEruNkUlCnPfEWFutzqJiiaCU");
+
+export async function analyzeText(text) {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+    systemInstruction: SYSTEM_PROMPT
+  });
+
+  const result = await model.generateContent(text);
+  const responseText = result.response.text();
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return {
+      classification: "unknown",
+      explanation: responseText,
+      confidence: "low"
+    };
+  }
+}
 
 function ReportAbuse() {
   const [formData, setFormData] = useState({
