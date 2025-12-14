@@ -182,16 +182,18 @@ export const generatePDF = async (formData, analysis = {}) => {
   // Use combined text if available (includes OCR extracted text)
   const narrativeText = formData.combinedText || formData.description;
   
-  doc.setFillColor(250, 250, 252);
+  doc.setFillColor(255, 255, 255);  // White background for better readability
   const descHeight = doc.splitTextToSize(narrativeText, contentWidth - 8).length * 5.5 + 8;
   
   checkPageBreak(descHeight + 10);
   doc.rect(margin, yPosition - 4, contentWidth, descHeight, 'F');
-  doc.setDrawColor(180, 180, 190);
+  doc.setDrawColor(200, 200, 210);  // Lighter border
   doc.rect(margin, yPosition - 4, contentWidth, descHeight);
   
-  doc.setFont(undefined, 'italic');
+  doc.setTextColor(30, 30, 30);  // Dark text for high contrast
+  doc.setFont(undefined, 'normal');  // Use normal font instead of italic for better readability
   yPosition = addWrappedText(narrativeText, margin + 4, yPosition, contentWidth - 8, 5.5);
+  doc.setTextColor(0, 0, 0);  // Reset to default black
   yPosition += 10;
 
   // ===== LEGAL IMPLICATIONS =====
