@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 
-export const generatePDF = async (formData, analysis) => {
+export const generatePDF = async (formData, analysis = {}) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -135,10 +135,19 @@ export const generatePDF = async (formData, analysis) => {
   yPosition += 8;
 
   // Classification table
+  // Defensive defaults for analysis fields
+  const safeAnalysis = {
+    category: analysis?.category ?? analysis?.classification ?? 'General Online Abuse',
+    severity: analysis?.severity ?? 'low',
+    keywords: Array.isArray(analysis?.keywords) ? analysis.keywords : [],
+    detectedTypes: Array.isArray(analysis?.detectedTypes) ? analysis.detectedTypes : [],
+    recommendations: Array.isArray(analysis?.recommendations) ? analysis.recommendations : []
+  };
+
   const tableData = [
-    { label: 'Primary Classification:', value: analysis.category.toUpperCase() },
-    { label: 'Threat Assessment Level:', value: `${analysis.severity.toUpperCase()} PRIORITY` },
-    { label: 'Incident Category:', value: analysis.detectedTypes.length > 0 ? analysis.detectedTypes.map(t => t.replace(/([A-Z])/g, ' $1').trim()).join(', ').toUpperCase() : 'GENERAL DIGITAL ABUSE' }
+    { label: 'Primary Classification:', value: safeAnalysis.category.toUpperCase() },
+    { label: 'Threat Assessment Level:', value: `${safeAnalysis.severity.toUpperCase()} PRIORITY` },
+    { label: 'Incident Category:', value: safeAnalysis.detectedTypes.length > 0 ? safeAnalysis.detectedTypes.map(t => t.replace(/([A-Z])/g, ' $1').trim()).join(', ').toUpperCase() : 'GENERAL DIGITAL ABUSE' }
   ];
 
   tableData.forEach(item => {
@@ -149,13 +158,13 @@ export const generatePDF = async (formData, analysis) => {
     yPosition += 6;
   });
 
-  if (analysis.keywords.length > 0) {
+  if (safeAnalysis.keywords.length > 0) {
     yPosition += 2;
     doc.setFont(undefined, 'bold');
     doc.text('Evidentiary Keywords Identified:', margin + 5, yPosition);
     yPosition += 6;
     doc.setFont(undefined, 'normal');
-    const keywords = analysis.keywords.join('; ').toLowerCase();
+    const keywords = safeAnalysis.keywords.join('; ').toLowerCase();
     yPosition = addWrappedText(keywords, margin + 8, yPosition, contentWidth - 8, 5.5);
     yPosition += 8;
   }
@@ -225,7 +234,7 @@ export const generatePDF = async (formData, analysis) => {
   yPosition = addWrappedText(recIntro, margin, yPosition, contentWidth, 5.5);
   yPosition += 8;
 
-  analysis.recommendations.forEach((rec, index) => {
+  safeAnalysis.recommendations.forEach((rec, index) => {
     checkPageBreak(15);
     doc.setFont(undefined, 'bold');
     doc.text(`${index + 1}.`, margin + 5, yPosition);

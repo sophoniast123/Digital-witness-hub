@@ -7,7 +7,6 @@ import { processOCRText } from '../utils/ocrTextCleaner';
 import { preprocessSocialMediaScreenshot, detectSocialMediaScreenshot } from '../utils/imagePreprocessor';
 import Tesseract from 'tesseract.js';
 import './ReportAbuse.css';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 
 const SYSTEM_PROMPT = `
@@ -31,27 +30,54 @@ Respond in JSON with:
 - confidence (low | medium | high)
 `;
 
-const genAI = new GoogleGenerativeAI("AIzaSyAa5KHaBdVEruNkUlCnPfEWFutzqJiiaCU");
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: import.meta.env.VITE_OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": window.location.origin,
+    "X-Title": "Digital Safety Hub",
+  },
+   dangerouslyAllowBrowser: true ,
+});
+
 
 export async function analyzeText(text) {
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: SYSTEM_PROMPT
-  });
-
-  const result = await model.generateContent(text);
-  const responseText = result.response.text();
-
   try {
-    return JSON.parse(responseText);
-  } catch {
+    const completion = await openai.chat.completions.create({
+      model: "openai/gpt-oss-20b:free",
+      temperature: 0,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: text }
+      ],
+    });
+
+    const content = completion?.choices?.[0]?.message?.content;
+    if (!content) throw new Error("Empty AI response");
+
+    try {
+      return JSON.parse(content.trim());
+    } catch {
+      return {
+        classification: "unknown",
+        explanation: content,
+        confidence: "low",
+      };
+    }
+
+  } catch (error) {
+    console.error("AI Analysis Error:", error);
     return {
       classification: "unknown",
-      explanation: responseText,
-      confidence: "low"
+      explanation: "AI analysis failed.",
+      confidence: "low",
     };
   }
 }
+
+
 
 function ReportAbuse() {
   const [formData, setFormData] = useState({
@@ -190,14 +216,26 @@ function ReportAbuse() {
     const combinedText = formData.description + (allExtractedText ? '\n\nExtracted from images:\n' + allExtractedText : '');
 
     // Analyze the combined description and OCR text (now async with AI)
-    const analysisResult = await analyzeText(combinedText);
-    setAnalysis(analysisResult);
+    const rawAnalysis = await analyzeText(combinedText);
 
-    // Generate PDF with combined text and hash information
+    // Normalize analysis shape so downstream code (UI + PDF) has expected fields
+    const normalizedAnalysis = {
+      category: rawAnalysis.category ?? rawAnalysis.classification ?? 'General Online Abuse',
+      severity: rawAnalysis.severity ?? (rawAnalysis.confidence === 'high' ? 'high' : 'low'),
+      keywords: Array.isArray(rawAnalysis.keywords) ? rawAnalysis.keywords : [],
+      detectedTypes: Array.isArray(rawAnalysis.detectedTypes) ? rawAnalysis.detectedTypes : [],
+      recommendations: Array.isArray(rawAnalysis.recommendations) ? rawAnalysis.recommendations : [],
+      aiAnalysis: rawAnalysis.aiAnalysis ?? rawAnalysis,
+      timestamp: rawAnalysis.timestamp ?? new Date().toISOString()
+    };
+
+    setAnalysis(normalizedAnalysis);
+
+    // Generate PDF with combined text and normalized analysis
     const pdfFileName = await generatePDF({
       ...formData,
       combinedText: combinedText
-    }, analysisResult);
+    }, normalizedAnalysis);
 
     // Generate and download hash certificates for each image
     if (formData.screenshots.length > 0) {
@@ -469,21 +507,18 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
             <div className="analysis-card">
               <div className="analysis-item">
                 <strong>Classification:</strong>
-                <span className={`badge badge-${analysis.severity}`}>
-                  {analysis.category}
+                <span className={`badge badge-${analysis?.severity ?? 'low'}`}>
+                  {analysis?.category ?? analysis?.classification ?? 'Unknown'}
                 </span>
               </div>
               <div className="analysis-item">
-                <strong>Severity Level:</strong>
-                <span className={`badge badge-${analysis.severity}`}>
-                  {analysis.severity.toUpperCase()}
-                </span>
+                {/* Severity level is displayed via classification badge above. */}
               </div>
               
               <div className="analysis-item">
                 <strong>Keywords Detected:</strong>
                 <div className="keywords">
-                  {analysis.keywords.map((keyword, idx) => (
+                  {(analysis?.keywords || []).map((keyword, idx) => (
                     <span key={idx} className="keyword-tag">{keyword}</span>
                   ))}
                 </div>
@@ -491,7 +526,7 @@ Jurisdiction: Federal Democratic Republic of Ethiopia
               <div className="analysis-item">
                 <strong>Recommended Actions:</strong>
                 <ul className="recommendations">
-                  {analysis.recommendations.map((rec, idx) => (
+                  {(analysis?.recommendations || []).map((rec, idx) => (
                     <li key={idx}>{rec}</li>
                   ))}
                 </ul>
